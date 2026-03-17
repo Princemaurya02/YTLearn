@@ -1,0 +1,35 @@
+.xp-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--grad-violet);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    z-index: 9999;
+    box-shadow: var(--shadow-violet), var(--shadow-md);
+    animation: fadeIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+.xp-reason {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}

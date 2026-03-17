@@ -1,0 +1,522 @@
+/* ═══════════════════════════════════════════════════════════════════
+   AnimatedUI.css — styles for all animated reusable components
+   All animations use transform/opacity only for GPU acceleration
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Animated Card ────────────────────────────────────────────── */
+.anim-card {
+    border-radius: 16px;
+    background: var(--bg-card, rgba(255,255,255,0.03));
+    border: 1px solid var(--border, rgba(255,255,255,0.07));
+    padding: 20px;
+    will-change: transform;
+    transform-origin: center;
+    cursor: default;
+}
+
+.anim-card-glow:hover {
+    border-color: rgba(124,110,255,0.3);
+    box-shadow: 0 0 0 1px rgba(124,110,255,0.12) inset,
+                0 8px 32px rgba(124,110,255,0.15);
+}
+
+/* ── 2. Ripple Button ────────────────────────────────────────────── */
+.ripple-btn {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    will-change: transform;
+    transition: background 0.2s;
+}
+
+.ripple-btn-primary {
+    background: linear-gradient(135deg, #7c6eff 0%, #5440e0 100%);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(124,110,255,0.35);
+}
+
+.ripple-btn-secondary {
+    background: rgba(124,110,255,0.1);
+    border: 1px solid rgba(124,110,255,0.25);
+    color: #a78bfa;
+}
+
+.ripple-btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+}
+
+.ripple-btn-danger {
+    background: rgba(255,71,87,0.12);
+    border: 1px solid rgba(255,71,87,0.3);
+    color: #ff6b7a;
+}
+
+.ripple-btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.ripple-circle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: rippleEffect 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes rippleEffect {
+    to { transform: translate(-50%, -50%) scale(50); opacity: 0; }
+}
+
+/* ── 3. Skeleton loaders ─────────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.09) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 8px;
+}
+
+@keyframes shimmer {
+    0%   { background-position:  200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skeleton-line { margin-top: 2px; }
+
+.skeleton-grid {
+    display: grid;
+    gap: 16px;
+}
+
+/* ── 4. Neon Title ───────────────────────────────────────────────── */
+.neon-title {
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.neon-violet {
+    background: linear-gradient(135deg, #c4b5fd, #7c6eff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 18px rgba(124,110,255,0.45));
+    animation: neonPulse 3s ease-in-out infinite alternate;
+}
+
+.neon-cyan {
+    background: linear-gradient(135deg, #67e8f9, #00d4ff, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 16px rgba(0,212,255,0.4));
+}
+
+.neon-green {
+    background: linear-gradient(135deg, #86efac, #00ff88, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 16px rgba(0,255,136,0.35));
+}
+
+@keyframes neonPulse {
+    from { filter: drop-shadow(0 0 12px rgba(124,110,255,0.35)); }
+    to   { filter: drop-shadow(0 0 28px rgba(124,110,255,0.7)); }
+}
+
+/* ── 5. Typing text / cursor ─────────────────────────────────────── */
+.typing-text { display: inline; }
+
+.typing-cursor {
+    display: inline-block;
+    color: #7c6eff;
+    animation: cursorBlink 0.55s step-end infinite alternate;
+    margin-left: 1px;
+}
+
+@keyframes cursorBlink {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* ── 6. Toast ────────────────────────────────────────────────────── */
+.anim-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    background: var(--bg-card, #1e1e3a);
+    border: 1px solid rgba(124,110,255,0.25);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,110,255,0.08) inset;
+    min-width: 240px;
+    max-width: 360px;
+    will-change: transform;
+}
+
+/* ── 7. Modal ────────────────────────────────────────────────────── */
+.anim-modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 8000;
+}
+
+.anim-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 8001;
+    background: #14142b;
+    border: 1px solid rgba(124,110,255,0.18);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    min-width: 300px;
+    max-width: 540px;
+    width: 90%;
+    will-change: transform;
+}
+
+/* ── 8. Progress bar ─────────────────────────────────────────────── */
+.anim-progress-track {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+}
+
+.anim-progress-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.anim-progress-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+    animation: progressShine 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+/* ── 9. Pulse dot ────────────────────────────────────────────────── */
+.pulse-dot-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pulse-dot-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid;
+    will-change: transform, opacity;
+}
+
+.pulse-dot-core {
+    border-radius: 50%;
+    display: block;
+    flex-shrink: 0;
+}
+
+/* ── 10. Marquee ─────────────────────────────────────────────────── */
+.marquee-outer {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+}
+
+.marquee-outer::before,
+.marquee-outer::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 64px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.marquee-outer::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg-primary, #0B0B14) 0%, transparent 100%);
+}
+
+.marquee-outer::after {
+    right: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--bg-primary, #0B0B14) 100%);
+}
+
+.marquee-inner {
+    display: flex;
+    white-space: nowrap;
+    will-change: transform;
+}
+
+/* ── 11. Accordion ───────────────────────────────────────────────── */
+.accordion-wrap {
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.02);
+}
+
+.accordion-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    font-family: inherit;
+    border-radius: 12px;
+}
+
+.accordion-icon { font-size: 18px; flex-shrink: 0; }
+
+.accordion-title { flex: 1; }
+
+.accordion-chevron {
+    color: rgba(255,255,255,0.4);
+    font-size: 16px;
+    display: inline-block;
+    will-change: transform;
+}
+
+.accordion-content {
+    padding: 4px 16px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.65;
+}
+
+/* ── 12. Flip Card ───────────────────────────────────────────────── */
+.flip-card-scene {
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.flip-card-body {
+    position: relative;
+    will-change: transform;
+}
+
+.flip-card-face {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    background: var(--bg-card, rgba(255,255,255,0.04));
+    border: 1px solid rgba(124,110,255,0.2);
+    padding: 24px;
+}
+
+/* .flip-card-front — no extra styles needed; default face is visible first */
+
+.flip-card-back {
+    transform: rotateY(180deg);
+    background: rgba(124,110,255,0.08);
+    border-color: rgba(124,110,255,0.35);
+}
+
+/* ── 13. Animated Gradient Background ────────────────────────────── */
+.anim-gradient-bg {
+    background: linear-gradient(
+        -45deg,
+        #0B0B14, #14142B, #1C1C3A, #0d0d22, #1a1040
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease infinite;
+}
+
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ── Default browser cursor (fallback) ───────────────────────────── */
+body { cursor: default; }
+
+/* ── 15. Liquid Button ───────────────────────────────────────────── */
+.liquid-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 14px 32px;
+    border-radius: 99px;
+    border: none;
+    background: linear-gradient(135deg, #7c6eff 0%, #5440e0 100%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    will-change: transform;
+    isolation: isolate;
+}
+
+.liquid-btn-text { position: relative; z-index: 1; }
+
+.liquid-btn-glow {
+    position: absolute;
+    inset: -2px;
+    border-radius: 99px;
+    background: linear-gradient(135deg, #a78bfa, #7c6eff, #00d4ff);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+    animation: liquidRotate 3s linear infinite;
+}
+
+.liquid-btn:hover .liquid-btn-glow { opacity: 1; }
+
+@keyframes liquidRotate {
+    to { filter: hue-rotate(360deg); }
+}
+
+/* ── 16. Glassmorphism card variant ──────────────────────────────── */
+.glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    box-shadow:
+        0 4px 24px rgba(0,0,0,0.3),
+        0 1px 0 rgba(255,255,255,0.05) inset;
+}
+
+/* ── 17. Hover lift utility ──────────────────────────────────────── */
+.hover-lift {
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    will-change: transform;
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(124,110,255,0.2);
+}
+
+/* ── 18. Glow button utility ─────────────────────────────────────── */
+.btn-glow:hover {
+    box-shadow: 0 0 0 3px rgba(124,110,255,0.25), 0 4px 24px rgba(124,110,255,0.4);
+}
+
+/* ── 19. Scroll reveal utility ───────────────────────────────────── */
+.reveal-hidden { opacity: 0; transform: translateY(24px); }
+.reveal-visible { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s ease; }
+
+/* ── 20. CSS custom fade-in helpers (for non-Framer fallback) ────── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-32px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(32px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+}
+
+@keyframes bounceIn {
+    0%   { opacity: 0; transform: scale(0.65); }
+    60%  { opacity: 1; transform: scale(1.08); }
+    80%  { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+@keyframes morphBg {
+    0%,100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+
+/* ── Animation utility classes ───────────────────────────────────── */
+.anim-fade-in    { animation: fadeIn    0.45s ease both; }
+.anim-fade-in-up { animation: fadeInUp  0.5s  ease both; }
+.anim-scale-in   { animation: scaleIn   0.4s  ease both; }
+.anim-slide-left { animation: slideInLeft  0.45s ease both; }
+.anim-slide-right{ animation: slideInRight 0.45s ease both; }
+.anim-float      { animation: floatY   3.5s ease-in-out infinite; }
+.anim-bounce-in  { animation: bounceIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.anim-morph      { animation: morphBg  8s ease-in-out infinite; }
+
+/* ── Delay utilities ─────────────────────────────────────────────── */
+.anim-delay-1 { animation-delay: 0.1s; }
+.anim-delay-2 { animation-delay: 0.2s; }
+.anim-delay-3 { animation-delay: 0.3s; }
+.anim-delay-4 { animation-delay: 0.4s; }
+.anim-delay-5 { animation-delay: 0.5s; }
+.anim-delay-6 { animation-delay: 0.6s; }
+.anim-delay-8 { animation-delay: 0.8s; }
+.anim-delay-10{ animation-delay: 1.0s; }
+
+/* ── Will-change hints ───────────────────────────────────────────── */
+.gpu { will-change: transform; transform: translateZ(0); }

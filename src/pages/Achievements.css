@@ -1,0 +1,533 @@
+/* ============================================================
+   Achievements Page — Premium Gamification UI
+   ============================================================ */
+
+.achievements-page2 {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ── Hero stats bar ─────────────────────────────────────────── */
+.ach-hero {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 22px 28px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ach-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 15% 50%, rgba(255, 179, 71, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 80% at 85% 50%, rgba(124, 110, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.ach-hero-stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.ach-hero-val {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    line-height: 1;
+}
+
+.ach-hero-val span {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.ach-hero-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ach-hero-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ach-hero-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.ach-hero-bar-track {
+    height: 10px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.ach-hero-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffb347, #ffd700);
+    border-radius: var(--radius-full);
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px rgba(255, 179, 71, 0.4);
+}
+
+.ach-hero-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ── Tab bar ────────────────────────────────────────────────── */
+.ach-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    align-self: flex-start;
+    border: 1px solid var(--border);
+}
+
+.ach-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ach-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-glass);
+}
+
+.ach-tab.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.ach-tab.active svg {
+    color: var(--violet);
+}
+
+.ach-tab-count {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.ach-tab.active .ach-tab-count {
+    background: rgba(124, 110, 255, 0.15);
+    color: var(--violet);
+}
+
+/* ── Category filter ────────────────────────────────────────── */
+.ach-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ach-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 13px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ach-cat-btn:hover {
+    border-color: var(--border-active);
+    color: var(--text-primary);
+}
+
+.ach-cat-btn.active {
+    font-weight: 600;
+}
+
+/* ── Results count ──────────────────────────────────────────── */
+.ach-results-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-left: 2px;
+}
+
+/* ── Achievement list ───────────────────────────────────────── */
+.ach-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ── Achievement card ───────────────────────────────────────── */
+.ach-card2 {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.ach-card2.locked {
+    opacity: 0.6;
+}
+
+.ach-card2.locked:hover {
+    opacity: 0.85;
+    border-color: var(--border-active);
+}
+
+.ach-card2.unlocked {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ach-card2.unlocked:hover {
+    transform: translateX(3px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ach-card2.expanded {
+    border-color: var(--border-active);
+}
+
+/* Main row */
+.ach-card2-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+}
+
+/* Badge / emoji */
+.ach-badge {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.ach-badge-emoji {
+    font-size: 26px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+}
+
+.ach-badge-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    border-radius: 50%;
+    animation: achGlowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes achGlowPulse {
+
+    0%,
+    100% {
+        opacity: 0.12;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.28;
+        transform: scale(1.08);
+    }
+}
+
+/* Body */
+.ach-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ach-top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ach-name2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ach-chips {
+    display: flex;
+    gap: 5px;
+}
+
+.ach-rarity-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ach-cat-chip {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.75;
+}
+
+.ach-desc2 {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    line-height: 1.4;
+}
+
+/* Progress bar */
+.ach-prog-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 7px;
+}
+
+.ach-prog-track {
+    flex: 1;
+    height: 5px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.ach-prog-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ach-prog-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Unlocked stamp */
+.ach-unlocked-stamp {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #00ff88;
+    font-weight: 500;
+}
+
+/* Right side */
+.ach-card2-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.ach-xp-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    background: rgba(124, 110, 255, 0.12);
+    color: #a78bfa;
+    border: 1px solid rgba(124, 110, 255, 0.2);
+    border-radius: var(--radius-full);
+}
+
+.ach-xp-tag.earned {
+    background: rgba(255, 179, 71, 0.12);
+    color: #ffb347;
+    border-color: rgba(255, 179, 71, 0.3);
+}
+
+.ach-expand-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.ach-expand-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+/* ── Learn More expanded panel ──────────────────────────────── */
+.ach-detail-panel {
+    border-top: 1px solid var(--border);
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-secondary);
+    animation: expandIn 0.2s ease;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ach-detail-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.ach-detail-how p,
+.ach-detail-progress p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0;
+}
+
+.ach-detail-progress .ach-prog-track {
+    height: 7px;
+    margin-bottom: 6px;
+}
+
+.ach-detail-nums {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.ach-detail-done {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: rgba(0, 255, 136, 0.06);
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+}
+
+.ach-detail-done strong {
+    color: #00ff88;
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.ach-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.ach-empty h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.ach-empty p {
+    font-size: 13px;
+    max-width: 340px;
+    line-height: 1.6;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .ach-hero {
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .ach-hero-bar-wrap {
+        width: 100%;
+        order: 10;
+    }
+
+    .ach-tabs {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .ach-card2-main {
+        gap: 10px;
+    }
+
+    .ach-chips {
+        display: none;
+    }
+}

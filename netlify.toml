@@ -1,0 +1,14 @@
+# Netlify configuration for YTLearn (React SPA)
+# This tells Netlify how to build and serve the frontend.
+
+[build]
+  command   = "npm run build"
+  publish   = "dist"
+
+# ── SPA fallback routing ──────────────────────────────────────────────────────
+# Without this, refreshing any page (e.g. /auth, /dashboard) gives a 404
+# because Netlify looks for a real file at that path.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
