@@ -1,292 +1,179 @@
 /* ═══════════════════════════════════════════════════════════════════
-   SPLASH SCREEN — YTLearn Study Cockpit  (refined v3)
-   All animations: transform / opacity only → GPU-accelerated 60fps
-═══════════════════════════════════════════════════════════════════ */
+   SplashScreen.css  — YTLearn v2.1 enhanced opener
+   ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Root overlay ──────────────────────────────────────────────── */
+/* ── Root ─────────────────────────────────────────────────────────── */
 .splash-root {
     position: fixed;
     inset: 0;
-    z-index: 99999;
+    z-index: 9999;
+    background: #08080f;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: linear-gradient(145deg, #08080f 0%, #0f0f22 35%, #14142b 65%, #1a1640 100%);
-    will-change: opacity;
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .splash-root.splash-exit {
-    opacity: 0;
-    pointer-events: none;
+    animation: splashFadeOut 0.55s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 
-/* ── Canvas particles ────────────────────────────────────────────── */
+@keyframes splashFadeOut {
+    to { opacity: 0; transform: scale(1.04); }
+}
+
+/* ── Canvas ───────────────────────────────────────────────────────── */
 .splash-canvas {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
     pointer-events: none;
-    opacity: 0.7;
 }
 
-/* ── Background orbs ─────────────────────────────────────────────── */
+/* ── Background orbs ──────────────────────────────────────────────── */
 .splash-orb {
     position: absolute;
     border-radius: 50%;
-    pointer-events: none;
     filter: blur(90px);
-    opacity: 0.18;
-    animation: orbDrift 14s ease-in-out infinite alternate;
-    will-change: transform;
-}
-
-.splash-orb-1 {
-    width: 460px; height: 460px;
-    background: radial-gradient(circle, #7c6eff 0%, transparent 68%);
-    top: -130px; left: -100px;
-    animation-duration: 14s;
-}
-
-.splash-orb-2 {
-    width: 360px; height: 360px;
-    background: radial-gradient(circle, #00d4ff 0%, transparent 68%);
-    bottom: -90px; right: -70px;
-    animation-duration: 10s;
-    animation-delay: -4s;
-    opacity: 0.14;
-}
-
-.splash-orb-3 {
-    width: 280px; height: 280px;
-    background: radial-gradient(circle, #a78bfa 0%, transparent 68%);
-    top: 45%; right: 10%;
-    animation-duration: 16s;
-    animation-delay: -8s;
-    opacity: 0.12;
-}
-
-@keyframes orbDrift {
-    0%   { transform: translate(0, 0) scale(1); }
-    50%  { transform: translate(18px, -14px) scale(1.05); }
-    100% { transform: translate(-10px, 24px) scale(0.97); }
-}
-
-/* ── Floating ambient icons ──────────────────────────────────────── */
-.splash-float-icon {
-    position: absolute;
-    user-select: none;
     pointer-events: none;
-    opacity: 0.14;
-    animation: floatAmbient var(--dur, 10s) ease-in-out infinite alternate;
-    will-change: transform;
-    filter: drop-shadow(0 0 6px rgba(124,110,255,0.3));
+    animation: orbFloat 10s ease-in-out infinite alternate;
 }
 
-@keyframes floatAmbient {
-    0%   { transform: translateY(0px)    translateX(0px)   rotate(0deg); }
-    30%  { transform: translateY(-10px)  translateX(6px)   rotate(2deg); }
-    60%  { transform: translateY(5px)    translateX(-5px)  rotate(-1.5deg); }
-    100% { transform: translateY(-7px)   translateX(9px)   rotate(3deg); }
+.splash-orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,110,255,0.25) 0%, transparent 70%); top: -120px; left: -100px; animation-duration: 12s; }
+.splash-orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%); bottom: -100px; right: -80px;  animation-duration: 9s; animation-delay: -4s; }
+.splash-orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(167,139,250,0.2) 0%, transparent 70%); top: 50%; left: 60%; animation-duration: 14s; animation-delay: -2s; }
+.splash-orb-4 { width: 250px; height: 250px; background: radial-gradient(circle, rgba(0,255,136,0.1) 0%, transparent 70%); bottom: 20%; left: 10%; animation-duration: 11s; animation-delay: -6s; }
+
+@keyframes orbFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(30px, 20px) scale(1.08); }
 }
 
-/* ── Center stage ────────────────────────────────────────────────── */
+/* ── Floating stat pills ──────────────────────────────────────────── */
+.splash-pill {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px;
+    backdrop-filter: blur(14px);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    opacity: 0;
+    transform: translateY(16px) scale(0.9);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.splash-pill.pill-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation: pillFloat 4s ease-in-out infinite alternate;
+    animation-delay: inherit;
+}
+
+.pill-icon { font-size: 16px; }
+.pill-label { letter-spacing: 0.01em; }
+
+@keyframes pillFloat {
+    from { transform: translateY(0px);  }
+    to   { transform: translateY(-8px); }
+}
+
+/* ── Center stage ─────────────────────────────────────────────────── */
 .splash-center {
     position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-    z-index: 2;
+    gap: 24px;
+    text-align: center;
+    padding: 20px;
 }
 
-/* ── Neural network ──────────────────────────────────────────────── */
-.splash-neural-wrap {
-    position: absolute;
-    width: min(440px, 88vw);
-    height: min(440px, 88vw);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 1s ease 0.2s;
-    pointer-events: none;
+/* ── Logo ─────────────────────────────────────────────────────────── */
+.splash-logo-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: logoEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
 }
 
-.splash-neural-wrap.nn-visible { opacity: 1; }
-
-/* Slow rotation for the whole SVG group */
-.nn-rotate-wrap {
-    width: 100%;
-    height: 100%;
-    animation: nnSlowRotate 40s linear infinite;
-    will-change: transform;
+@keyframes logoEntrance {
+    from { opacity: 0; transform: scale(0.5) rotate(-20deg); }
+    to   { opacity: 1; transform: scale(1)   rotate(0deg); }
 }
 
-@keyframes nnSlowRotate {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+.splash-logo-wrap.logo-final-glow .splash-logo-icon {
+    filter: drop-shadow(0 0 40px rgba(124,110,255,0.9)) drop-shadow(0 0 80px rgba(124,110,255,0.5));
+    animation: logoPulse 0.4s ease-in-out 2;
 }
 
-.splash-neural {
-    width: 100%;
-    height: 100%;
+@keyframes logoPulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.12); }
 }
 
-/* Edge draw-in animation */
-.nn-edge {
-    stroke-dasharray: 50;
-    stroke-dashoffset: 50;
-    animation: drawEdge 0.7s ease forwards;
-}
-
-@keyframes drawEdge {
-    to { stroke-dashoffset: 0; }
-}
-
-/* Node pop-in */
-.nn-node {
-    transform-origin: center;
-    opacity: 0;
-    transform: scale(0);
-    animation: popNode 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes popNode {
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* Center node — gentle glow pulse */
-.nn-node-center {
-    animation:
-        popNode   0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-        nodeGlow  2.2s  ease-in-out 0.6s infinite alternate;
-}
-
-@keyframes nodeGlow {
-    from { filter: drop-shadow(0 0 2px #a78bfa); }
-    to   { filter: drop-shadow(0 0 8px #c4b5fd) drop-shadow(0 0 18px #7c6eff); }
-}
-
-/* ── Glow rings ──────────────────────────────────────────────────── */
-.splash-ring-wrap {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.7s ease 0.1s;
-    pointer-events: none;
-}
-
-.splash-ring-wrap.splash-ring-visible { opacity: 1; }
-
-/* Final glow burst before exit */
-.splash-ring-wrap.ring-final-glow {
-    transition: filter 0.4s ease;
-    filter: drop-shadow(0 0 20px rgba(124,110,255,0.8));
-}
-
-.splash-ring {
+/* Rotating rings */
+.splash-ring-1,
+.splash-ring-2,
+.splash-ring-3 {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
+    animation: ringRotate 4s linear infinite;
 }
 
-/* Outer ring — cyan→purple gradient, slow rotation */
 .splash-ring-1 {
-    background:
-        linear-gradient(#0f0f22, #0f0f22) padding-box,
-        conic-gradient(from 0deg, #00d4ff, #7c6eff, #a78bfa, #00d4ff) border-box;
-    animation: ringRotate 5s linear infinite;
-    will-change: transform;
+    border-top-color: rgba(124,110,255,0.6);
+    border-right-color: rgba(124,110,255,0.2);
+    animation-duration: 3s;
 }
 
-/* Inner ring — opposite direction */
 .splash-ring-2 {
-    inset: 12px;
-    background:
-        linear-gradient(#0f0f22, #0f0f22) padding-box,
-        conic-gradient(from 180deg, #a78bfa, #7c6eff, #00d4ff, #a78bfa) border-box;
-    animation: ringRotate 7s linear infinite reverse;
-    opacity: 0.55;
-    will-change: transform;
+    inset: 10px;
+    border-bottom-color: rgba(0,212,255,0.5);
+    border-left-color: rgba(0,212,255,0.15);
+    animation-direction: reverse;
+    animation-duration: 5s;
 }
 
-/* Outer pulse ring */
-.splash-ring-pulse {
-    inset: -16px;
-    border: 1px solid rgba(124,110,255,0.18);
-    animation: ringPulse 2.2s ease-in-out infinite;
+.splash-ring-3 {
+    inset: 20px;
+    border-top-color: rgba(167,139,250,0.4);
+    border-right-color: rgba(167,139,250,0.1);
+    animation-duration: 7s;
 }
 
 @keyframes ringRotate {
     to { transform: rotate(360deg); }
 }
 
-@keyframes ringPulse {
-    0%, 100% { transform: scale(1);    opacity: 0.25; }
-    50%       { transform: scale(1.07); opacity: 0.6;  }
-}
-
-/* ── Logo ────────────────────────────────────────────────────────── */
-.splash-logo-wrap {
-    position: relative;
-    z-index: 3;
-    margin-bottom: 30px;
-
-    /* Starts hidden — logo-enter class applies the visible state immediately */
-    opacity: 0;
-    transform: scale(0.9);
-    transition:
-        opacity  0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
-        transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-.splash-logo-wrap.logo-enter {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Glow intensifies on exit phase */
-.splash-logo-wrap.logo-final-glow .splash-logo-inner {
-    filter:
-        drop-shadow(0 0 24px rgba(196,181,253,0.9))
-        drop-shadow(0 0 56px rgba(124,110,255,0.7));
-    transition: filter 0.4s ease;
-}
-
-.splash-logo-inner {
-    filter: drop-shadow(0 0 16px rgba(167,139,250,0.65));
-    transition: filter 0.4s ease;
-}
-
-/* Breathing glow — subtle scale every 2s */
 .splash-logo-icon {
-    display: block;
-    animation: logoBreath 2s ease-in-out 0.8s infinite alternate;
-    will-change: transform;
+    width: 72px;
+    height: 72px;
+    filter: drop-shadow(0 0 20px rgba(124,110,255,0.7));
+    transition: filter 0.3s ease;
 }
 
-@keyframes logoBreath {
-    from { transform: scale(1);    filter: drop-shadow(0 0 12px rgba(124,110,255,0.5)); }
-    to   { transform: scale(1.05); filter: drop-shadow(0 0 24px rgba(167,139,250,0.8)); }
-}
-
-/* ── Title block ─────────────────────────────────────────────────── */
+/* ── Title ────────────────────────────────────────────────────────── */
 .splash-title-block {
-    text-align: center;
     opacity: 0;
-    transform: translateY(22px);
-    transition:
-        opacity   0.65s ease,
-        transform 0.65s cubic-bezier(0.34, 1.3, 0.64, 1);
-    margin-bottom: 36px;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
 .splash-title-block.title-enter {
@@ -295,53 +182,80 @@
 }
 
 .splash-title {
-    font-size: clamp(38px, 6vw, 64px);
+    font-size: clamp(42px, 10vw, 72px);
     font-weight: 900;
-    letter-spacing: -1.5px;
+    letter-spacing: -2px;
     line-height: 1;
-    margin: 0 0 10px;
+    margin: 0;
     font-family: 'Inter', 'Outfit', system-ui, sans-serif;
 }
 
 .splash-title-yt {
-    background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+    background: linear-gradient(135deg, #c4b5fd 0%, #7c6eff 50%, #5440e0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .splash-title-learn {
-    background: linear-gradient(135deg, #00d4ff, #7c6eff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
+    margin-left: 4px;
+}
+
+/* Letter animation */
+.splash-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(24px) scale(0.8);
+    animation: letterPop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+
+@keyframes letterPop {
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .splash-subtitle {
-    font-size: clamp(11px, 1.8vw, 15px);
-    font-weight: 500;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 4px;
-    text-transform: uppercase;
+    font-size: 16px;
+    color: rgba(255,255,255,0.55);
     margin: 0;
-    animation: subtitlePulse 3s ease-in-out infinite alternate;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 12px;
 }
 
-@keyframes subtitlePulse {
-    from { color: rgba(255,255,255,0.3);  }
-    to   { color: rgba(167,139,250,0.65); }
+.splash-subtitle-inner {
+    animation: subtitleSlide 0.7s 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 
-/* ── Progress bar ────────────────────────────────────────────────── */
-.splash-progress-wrap {
-    width: clamp(240px, 42vw, 400px);
+@keyframes subtitleSlide {
+    from { opacity: 0; letter-spacing: 0.4em; }
+    to   { opacity: 1; letter-spacing: 0.05em; }
+}
+
+/* Tagline row */
+.splash-tagline {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+    margin-top: 4px;
+    animation: fadeInUp 0.6s 0.8s ease both;
+}
+
+.splash-dot {
+    color: var(--violet, #7c6eff);
+    font-size: 16px;
+}
+
+/* ── Progress ─────────────────────────────────────────────────────── */
+.splash-progress-wrap {
+    width: min(380px, 88vw);
     opacity: 0;
     transform: translateY(12px);
-    transition: opacity 0.55s ease, transform 0.55s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .splash-progress-wrap.progress-enter {
@@ -349,107 +263,76 @@
     transform: translateY(0);
 }
 
-/* Track */
 .splash-progress-track {
-    width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 99px;
+    height: 5px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 100px;
     overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset;
 }
 
-/* Fill — cyan→purple gradient with glow */
 .splash-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #00d4ff 0%, #7c6eff 50%, #a78bfa 100%);
-    border-radius: 99px;
+    background: linear-gradient(90deg, #5440e0, #7c6eff, #00d4ff);
+    border-radius: 100px;
+    transition: width 0.1s linear;
     position: relative;
-    overflow: hidden;
-    will-change: width;
-    /* smooth CSS transition supplements the rAF updates */
-    transition: width 0.08s linear;
-    box-shadow:
-        0 0 10px rgba(0,212,255,0.7),
-        0 0 22px rgba(124,110,255,0.5),
-        0 0 4px  rgba(167,139,250,0.9);
 }
 
-/* Shine sweep over the fill */
 .splash-progress-shine {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        transparent        0%,
-        rgba(255,255,255,0.3) 50%,
-        transparent        100%
-    );
-    animation: shineSweep 1.2s ease-in-out infinite;
-    will-change: transform;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 50px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45));
+    border-radius: 100px;
 }
 
-@keyframes shineSweep {
-    0%   { transform: translateX(-120%); }
-    100% { transform: translateX(220%); }
+.splash-progress-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
 }
 
-/* ── Loading messages ────────────────────────────────────────────── */
 .splash-msg {
-    font-size: 12px;
-    letter-spacing: 0.4px;
-    color: rgba(167,139,250,0.7);
-    font-weight: 500;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
     margin: 0;
-    height: 18px;
-    text-align: center;
-    will-change: opacity, transform;
-    transition: opacity 0.28s ease, transform 0.28s ease;
+    transition: opacity 0.25s ease;
 }
 
-.splash-msg.msg-visible {
-    opacity: 1;
-    transform: translateY(0);
+.splash-msg.msg-visible  { opacity: 1; }
+.splash-msg.msg-hidden   { opacity: 0; }
+
+.splash-pct {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(124,110,255,0.8);
+    font-variant-numeric: tabular-nums;
 }
 
-.splash-msg.msg-hidden {
-    opacity: 0;
-    transform: translateY(5px);
-}
-
-/* ── Version badge ───────────────────────────────────────────────── */
+/* ── Version ──────────────────────────────────────────────────────── */
 .splash-version {
     position: absolute;
-    bottom: 22px;
+    bottom: 18px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 10px;
-    letter-spacing: 1px;
+    font-size: 11px;
     color: rgba(255,255,255,0.15);
     white-space: nowrap;
-    z-index: 3;
-    user-select: none;
+    letter-spacing: 0.06em;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────── */
-@media (max-width: 600px) {
-    .splash-orb-1 { width: 280px; height: 280px; }
-    .splash-orb-2 { width: 220px; height: 220px; }
-    .splash-orb-3 { display: none; }
-    .splash-ring-wrap  { width: 150px; height: 150px; }
-    .splash-neural-wrap { width: min(300px, 85vw); height: min(300px, 85vw); }
-    .splash-float-icon  { opacity: 0.09; }
-    .splash-progress-wrap { width: clamp(200px, 80vw, 320px); }
+/* ── Keyframe utilities ───────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Reduced motion ──────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-    .splash-root, .splash-logo-wrap, .splash-title-block,
-    .splash-orb, .splash-float-icon, .splash-ring-1, .splash-ring-2,
-    .nn-rotate-wrap {
-        animation: none !important;
-        transition-duration: 0.01s !important;
-    }
-    .splash-root { transition: opacity 0.3s ease; }
+/* ── Mobile adjustments ───────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .splash-pill { font-size: 11px; padding: 6px 12px; }
+    .splash-logo-wrap { width: 110px; height: 110px; }
+    .splash-logo-icon { width: 58px; height: 58px; }
 }

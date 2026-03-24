@@ -1,35 +1,88 @@
 // @refresh reset
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { persistSession, readSessions, SUBJECT_COLORS } from '../hooks/useAnalytics';
+
+// ─── Load logged-in user from AuthContext localStorage ────────────────────────
+function loadAuthUser() {
+    try {
+        const raw = localStorage.getItem('ytlearn_user');
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch { return null; }
+}
+
+// ─── Load/save accumulated XP (persisted separately so it survives reload) ───
+function loadXpData() {
+    try {
+        const raw = localStorage.getItem('ytlearn_xp_data');
+        if (raw) return JSON.parse(raw);
+    } catch {}
+    return { xp: 0, level: 1, xpToNext: 500 };
+}
+function saveXpData(data) {
+    try { localStorage.setItem('ytlearn_xp_data', JSON.stringify(data)); } catch {}
+}
 
 const AppContext = createContext(null);
 
-const INITIAL_USER = {
-    name: 'Prince',
-    avatar: null,
-    level: 3,
-    levelName: 'Rising Scholar',
-    xp: 1240,
-    xpToNext: 2000,
-    streak: 7,
-    longestStreak: 14,
-    totalHours: 48.5,
-    focusScore: 87,
-    badges: ['first_blood', 'speed_learner', 'night_owl'],
-    joinedDate: '2024-01-15',
-    completedPlaylists: ['web-dev-basics'],
-};
-
-const INITIAL_ACHIEVEMENTS = [
-    { id: 'first_blood', name: 'First Blood', emoji: '🎯', desc: 'Complete your first session', unlocked: true },
-    { id: 'speed_learner', name: 'Speed Learner', emoji: '⚡', desc: 'Watch 1 hour at 2x speed', unlocked: true },
-    { id: 'night_owl', name: 'Night Owl', emoji: '🌙', desc: 'Study after midnight', unlocked: true },
-    { id: 'encyclopedia', name: 'Encyclopedia', emoji: '📚', desc: 'Cover 50 different topics', unlocked: false, progress: 23, total: 50 },
-    { id: 'streak_7', name: 'Week Warrior', emoji: '🔥', desc: 'Maintain a 7-day streak', unlocked: true },
-    { id: 'streak_30', name: 'Monthly Master', emoji: '💎', desc: 'Maintain a 30-day streak', unlocked: false, progress: 7, total: 30 },
-    { id: 'boss_slayer', name: 'Boss Slayer', emoji: '⚔️', desc: 'Complete a weekly boss battle', unlocked: false },
-    { id: 'social_butterfly', name: 'Social Butterfly', emoji: '👥', desc: 'Join 5 study rooms', unlocked: false, progress: 1, total: 5 },
+// Level names by level number
+const LEVEL_NAMES = [
+    '', 'Rookie', 'Learner', 'Rising Scholar', 'Scholar', 'Adept',
+    'Expert', 'Master', 'Grand Master', 'Legend', 'Champion'
 ];
+function getLevelName(level) {
+    return LEVEL_NAMES[level] || `Level ${level}`;
+}
+
+function buildInitialUser() {
+    const authUser = loadAuthUser();
+    const xpData   = loadXpData();
+    const emailName = authUser?.email
+        ? authUser.email.split('@')[0]
+              .replace(/[._-]/g, ' ')
+              .replace(/\b\w/g, c => c.toUpperCase())
+        : 'User';
+    return {
+        name:               emailName,
+        email:              authUser?.email || '',
+        avatar:             authUser?.profilePhoto || null,
+        avatarColor:        authUser?.avatarColor  || '#7c6eff',
+        level:              xpData.level,
+        levelName:          getLevelName(xpData.level),
+        xp:                 xpData.xp,
+        xpToNext:           xpData.xpToNext,
+        streak:             0,          // computed live from sessionHistory
+        completedPlaylists: [],
+    };
+}
+
+// All achievement unlock state is computed live from real session data
+// via computedAchievements \u2014 this array is kept only so the legacy
+// `achievements` export doesn\u2019t break other files.
+const INITIAL_ACHIEVEMENTS = [];
+
+// ─── Playlist progress localStorage helpers ────────────────────────────────────────────
+const PLAYLIST_PROGRESS_KEY = 'ytlearn_playlist_progress';
+function loadPlaylistProgress() {
+    try {
+        const raw = localStorage.getItem(PLAYLIST_PROGRESS_KEY);
+        return raw ? JSON.parse(raw) : {}; // { [playlistId]: Set<videoId> }
+    } catch { return {}; }
+}
+function savePlaylistProgress(progress) {
+    // Convert Sets to arrays for JSON serialisation
+    const serialisable = {};
+    Object.entries(progress).forEach(([pid, ids]) => {
+        serialisable[pid] = [...ids];
+    });
+    try { localStorage.setItem(PLAYLIST_PROGRESS_KEY, JSON.stringify(serialisable)); } catch {}
+}
+function buildProgress(raw) {
+    // Convert arrays back to Sets
+    const p = {};
+    Object.entries(raw).forEach(([pid, ids]) => { p[pid] = new Set(ids); });
+    return p;
+}
 
 const CURATED_PLAYLISTS = [
     {
@@ -38,13 +91,13 @@ const CURATED_PLAYLISTS = [
         subject: 'Web Dev',
         thumbnail: 'https://i.ytimg.com/vi/qz0aGYrrlhU/hqdefault.jpg',
         totalVideos: 12,
-        completedVideos: 8,
+        completedVideos: 0,
         totalHours: 6.5,
         difficulty: 'Beginner',
         instructor: 'Traversy Media',
         videos: [
-            { id: 'qz0aGYrrlhU', title: 'HTML Crash Course', duration: '1:10:09', watched: true },
-            { id: 'yfoY53QXEnI', title: 'CSS Crash Course', duration: '1:25:21', watched: true },
+            { id: 'qz0aGYrrlhU', title: 'HTML Crash Course',       duration: '1:10:09', watched: false },
+            { id: 'yfoY53QXEnI', title: 'CSS Crash Course',        duration: '1:25:21', watched: false },
             { id: 'PkZNo7MFNFg', title: 'JavaScript Crash Course', duration: '3:26:42', watched: false },
         ]
     },
@@ -54,13 +107,13 @@ const CURATED_PLAYLISTS = [
         subject: 'React',
         thumbnail: 'https://i.ytimg.com/vi/SqcY0GlETPk/hqdefault.jpg',
         totalVideos: 20,
-        completedVideos: 5,
+        completedVideos: 0,
         totalHours: 12,
         difficulty: 'Intermediate',
         instructor: 'Academind',
         videos: [
-            { id: 'SqcY0GlETPk', title: 'React Introduction', duration: '2:30:00', watched: true },
-            { id: 'w7ejDZ8SWv8', title: 'React Hooks Tutorial', duration: '1:48:10', watched: false },
+            { id: 'SqcY0GlETPk', title: 'React Introduction',    duration: '2:30:00', watched: false },
+            { id: 'w7ejDZ8SWv8', title: 'React Hooks Tutorial',   duration: '1:48:10', watched: false },
         ]
     },
     {
@@ -75,7 +128,7 @@ const CURATED_PLAYLISTS = [
         instructor: 'freeCodeCamp',
         videos: [
             { id: '8hly31xKli0', title: 'Data Structures Full Course', duration: '4:22:10', watched: false },
-            { id: 'RBSGKlAvoiM', title: 'Dynamic Programming', duration: '5:01:12', watched: false },
+            { id: 'RBSGKlAvoiM', title: 'Dynamic Programming',         duration: '5:01:12', watched: false },
         ]
     },
     {
@@ -84,12 +137,12 @@ const CURATED_PLAYLISTS = [
         subject: 'Python',
         thumbnail: 'https://i.ytimg.com/vi/_uQrJ0TkZlc/hqdefault.jpg',
         totalVideos: 15,
-        completedVideos: 12,
+        completedVideos: 0,
         totalHours: 8,
         difficulty: 'Beginner',
         instructor: 'Corey Schafer',
         videos: [
-            { id: '_uQrJ0TkZlc', title: 'Python Tutorial for Beginners', duration: '6:14:07', watched: true },
+            { id: '_uQrJ0TkZlc', title: 'Python Tutorial for Beginners', duration: '6:14:07', watched: false },
         ]
     },
 ];
@@ -125,12 +178,43 @@ const ROADMAPS = [
 ];
 
 export function AppProvider({ children }) {
-    const [user, setUser] = useState(INITIAL_USER);
+    const [user, setUser] = useState(buildInitialUser);
     const [achievements, setAchievements] = useState(INITIAL_ACHIEVEMENTS);
-    const [playlists] = useState(CURATED_PLAYLISTS);
     const [studyRooms] = useState(STUDY_ROOMS);
     const [roadmaps] = useState(ROADMAPS);
     const [currentSession, setCurrentSession] = useState(null);
+
+    // ── Playlist video-watch progress (persisted to localStorage) ──────────────────
+    // Shape: { [playlistId]: Set<videoId> }
+    const [playlistProgress, setPlaylistProgress] = useState(() =>
+        buildProgress(loadPlaylistProgress())
+    );
+
+    // Playlists with real watched counts merged in
+    const playlists = useMemo(() =>
+        CURATED_PLAYLISTS.map(pl => {
+            const watched = playlistProgress[pl.id] || new Set();
+            return {
+                ...pl,
+                completedVideos: watched.size,
+                videos: pl.videos.map(v => ({ ...v, watched: watched.has(v.id) })),
+            };
+        })
+    , [playlistProgress]);
+
+    // Mark a single video as watched inside a playlist
+    const markVideoWatched = useCallback((playlistId, videoId) => {
+        if (!playlistId || !videoId) return;
+        setPlaylistProgress(prev => {
+            const next = { ...prev };
+            const set  = new Set(prev[playlistId] || []);
+            if (set.has(videoId)) return prev; // already watched — no-op
+            set.add(videoId);
+            next[playlistId] = set;
+            savePlaylistProgress(next);
+            return next;
+        });
+    }, []);
 
     // ── One-time migration: clear old demo/seed notes (IDs s1-s5) ────────────
     // Runs synchronously before state init so stale demo data is never shown.
@@ -229,13 +313,19 @@ export function AppProvider({ children }) {
 
     const addXP = useCallback((amount, reason = '') => {
         setUser(prev => {
-            const newXp = prev.xp + amount;
-            const levelUp = newXp >= prev.xpToNext;
+            const newXp    = prev.xp + amount;
+            const levelUp  = newXp >= prev.xpToNext;
+            const nextXp   = levelUp ? newXp - prev.xpToNext : newXp;
+            const nextXpTo = levelUp ? Math.round(prev.xpToNext * 1.5) : prev.xpToNext;
+            const nextLvl  = levelUp ? prev.level + 1 : prev.level;
+            // Persist so XP survives page reload
+            saveXpData({ xp: nextXp, level: nextLvl, xpToNext: nextXpTo });
             return {
                 ...prev,
-                xp: levelUp ? newXp - prev.xpToNext : newXp,
-                xpToNext: levelUp ? prev.xpToNext * 1.5 : prev.xpToNext,
-                level: levelUp ? prev.level + 1 : prev.level,
+                xp:       nextXp,
+                xpToNext: nextXpTo,
+                level:    nextLvl,
+                levelName: getLevelName(nextLvl),
             };
         });
         setXpGained({ amount, reason });
@@ -282,12 +372,17 @@ export function AppProvider({ children }) {
             setSessionHistory(prev => [sessionData, ...prev]);
             setWatchHistory(prev => [sessionData, ...prev]);
 
+            // Auto-mark video as watched in its playlist
+            if (currentSession.playlistId) {
+                markVideoWatched(currentSession.playlistId, currentSession.videoId);
+            }
+
             // Award XP: 10 XP per minute studied
             const xpEarned = Math.max(5, Math.floor(duration / 60) * 10);
             addXP(xpEarned, 'Session completed');
             setCurrentSession(null);
         }
-    }, [currentSession, addXP]);
+    }, [currentSession, addXP, markVideoWatched]);
 
     const markNotificationRead = useCallback((id) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
@@ -752,6 +847,7 @@ export function AppProvider({ children }) {
             xpGained,
             addXP,
             startSession, endSession,
+            markVideoWatched, playlistProgress,
         }}>
             {children}
         </AppContext.Provider>

@@ -363,4 +363,49 @@
     border-radius: 50%;
     animation: pulse 1.5s ease-in-out infinite;
     box-shadow: 0 0 6px var(--green);
-}
+}
+
+/* ── Hamburger menu button (mobile only) ── */
+.header-menu-btn {
+    display: none; /* shown via media query in index.css */
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.header-menu-btn:hover,
+.header-menu-btn:active {
+    background: var(--bg-glass-hover);
+    color: var(--text-primary);
+    border-color: var(--border-active);
+}
+
+/* ── Mobile header tweaks ── */
+@media (max-width: 640px) {
+    .page-header {
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    .header-search {
+        max-width: none;
+    }
+
+    .search-shortcut {
+        display: none;
+    }
+
+    .focus-indicator span {
+        display: none; /* show just the dot on mobile */
+    }
+}
+

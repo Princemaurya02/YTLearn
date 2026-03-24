@@ -1,0 +1,125 @@
+/* ═══════════════════════════════════════════════════════════════
+   MINI PLAYER — floating draggable PiP
+   ═══════════════════════════════════════════════════════════════ */
+
+.mini-player {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 300px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    z-index: 500;
+    box-shadow: 0 16px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(124, 110, 255, 0.15);
+    will-change: transform, opacity;
+    user-select: none;
+    cursor: grab;
+}
+
+.mini-player:active {
+    cursor: grabbing;
+}
+
+/* Drag handle top bar */
+.mp-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    background: rgba(124, 110, 255, 0.08);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: grab;
+}
+
+/* Video iframe area — 16:9 */
+.mp-iframe-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+}
+
+.mp-iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+    pointer-events: auto; /* allow YouTube controls inside */
+}
+
+/* Bottom controls */
+.mp-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+}
+
+.mp-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.mp-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.mp-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(124, 110, 255, 0.12);
+    border: 1px solid rgba(124, 110, 255, 0.25);
+    color: var(--violet-light);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mp-btn:hover {
+    background: rgba(124, 110, 255, 0.22);
+    border-color: var(--violet);
+}
+
+.mp-btn-close {
+    background: rgba(255, 71, 87, 0.1);
+    border-color: rgba(255, 71, 87, 0.25);
+    color: var(--red);
+    padding: 4px;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    justify-content: center;
+}
+
+.mp-btn-close:hover {
+    background: rgba(255, 71, 87, 0.22);
+    border-color: var(--red);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .mini-player {
+        width: 248px;
+        bottom: 80px; /* above bottom nav */
+        right: 12px;
+    }
+}

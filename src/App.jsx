@@ -7,7 +7,11 @@ import { AppProvider }  from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar       from './components/Sidebar';
 import Header        from './components/Header';
+import BottomNav     from './components/BottomNav';
+import MobileMenu    from './components/MobileMenu';
+import MiniPlayer    from './components/MiniPlayer';
 import SplashScreen  from './components/SplashScreen';
+import { PiPProvider } from './context/PiPContext';
 
 import AuthPage      from './pages/AuthPage';
 import Dashboard     from './pages/Dashboard';
@@ -62,7 +66,7 @@ function AnimatedPage({ children }) {
             initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
             animate={{ opacity: 1, y: 0,  filter: 'blur(0px)'  }}
             exit={{    opacity: 0, y: -10, filter: 'blur(3px)'  }}
-            transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.34, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ height: '100%' }}
         >
             {children}
@@ -82,12 +86,26 @@ function PrivatePage({ children }) {
 /* ── App shell with animated route switching ─────────────────────── */
 function AppShell() {
     const location = useLocation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     return (
         <div className="app-layout">
             <div className="bg-orbs" />
-            <Sidebar />
+
+            {/* Desktop Sidebar — always visible on desktop, hidden on mobile */}
+            <div className="sidebar-wrapper">
+                <Sidebar />
+            </div>
+
+            {/* Mobile dropdown menu (replaces sidebar drawer on mobile) */}
+            <MobileMenu
+                open={mobileMenuOpen}
+                onClose={() => setMobileMenuOpen(false)}
+            />
+
+            {/* Main content */}
             <div className="main-content">
-                <Header />
+                <Header onMenuClick={() => setMobileMenuOpen(o => !o)} />
                 <div className="page-body">
                     <AnimatePresence mode="wait">
                         <Routes location={location} key={location.pathname}>
@@ -106,6 +124,13 @@ function AppShell() {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Mobile bottom nav */}
+            <BottomNav />
+
+            {/* Floating PiP mini player */}
+            <MiniPlayer />
+
             <XPToast />
         </div>
     );
@@ -146,8 +171,10 @@ export default function App() {
         <BrowserRouter>
             <AuthProvider>
                 <AppProvider>
-                    {showSplash && <SplashScreen onDone={handleSplashDone} />}
-                    <RootRouter />
+                    <PiPProvider>
+                        {showSplash && <SplashScreen onDone={handleSplashDone} />}
+                        <RootRouter />
+                    </PiPProvider>
                 </AppProvider>
             </AuthProvider>
         </BrowserRouter>

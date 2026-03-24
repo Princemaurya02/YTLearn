@@ -1,1 +1,26 @@
-/* App-level styles */
+/* App.css — layout for sidebar + page body */
+
+/* Desktop: sidebar always visible; main content pushed right */
+.main-content {
+  margin-left: var(--sidebar-width);
+}
+
+/* Sidebar wrapper */
+.sidebar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+/* ── Mobile: hide desktop sidebar, use MobileMenu dropdown instead ── */
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+}

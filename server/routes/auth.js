@@ -1,7 +1,8 @@
-import express        from 'express';
-import crypto         from 'crypto';
-import User           from '../models/User.js';
-import Otp            from '../models/Otp.js';
+import express    from 'express';
+import crypto     from 'crypto';
+import dns        from 'dns/promises';
+import User       from '../models/User.js';
+import Otp        from '../models/Otp.js';
 import { sendOtpEmail } from '../utils/email.js';
 
 const router = express.Router();
@@ -20,21 +21,55 @@ function safeUser(u) {
     };
 }
 
+// ─── Helper: verify email domain has real MX records (DNS check) ──────────────
+async function isRealEmailDomain(email) {
+    const domain = email.split('@')[1];
+    if (!domain) return false;
+
+    // Block known test/dev/fake domains
+    const BLOCKED = [
+        'ytlearn.dev', 'test.com', 'example.com', 'fake.com',
+        'mailinator.com', 'guerrillamail.com', 'trashmail.com',
+        'tempmail.com', 'throwam.com', 'yopmail.com', 'sharklasers.com',
+        'guerrillamailblock.com', 'grr.la', 'guerrillamail.info',
+        'spam4.me', 'dispostable.com', 'mailnull.com', '10minutemail.com',
+    ];
+    if (BLOCKED.includes(domain.toLowerCase())) return false;
+
+    // DNS MX record check — does this domain actually receive email?
+    try {
+        const records = await dns.resolveMx(domain);
+        return Array.isArray(records) && records.length > 0;
+    } catch {
+        return false; // domain doesn't exist / no MX record
+    }
+}
+
 // ─── POST /api/auth/send-otp ──────────────────────────────────────────────────
 router.post('/send-otp', async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
+        if (!email || typeof email !== 'string') {
             return res.status(400).json({ success: false, message: 'Email is required.' });
         }
 
-        const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRx.test(email)) {
+        const normalised = email.toLowerCase().trim();
+
+        // Basic format check
+        const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        if (!emailRx.test(normalised)) {
             return res.status(400).json({ success: false, message: 'Invalid email format.' });
         }
 
-        const normalised = email.toLowerCase().trim();
+        // DNS MX check — reject fake/non-existent email domains
+        const isReal = await isRealEmailDomain(normalised);
+        if (!isReal) {
+            return res.status(400).json({
+                success: false,
+                message: 'This email address does not appear to be valid. Please use a real email address.',
+            });
+        }
 
         // Generate 6-digit OTP
         const otp = crypto.randomInt(100000, 999999).toString();
@@ -46,7 +81,7 @@ router.post('/send-otp', async (req, res) => {
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
         await Otp.create({ email: normalised, otp, expiresAt });
 
-        // Send email
+        // Send email (real or dev mode if GMAIL_PASS not set)
         await sendOtpEmail(normalised, otp);
 
         console.log(`[send-otp] OTP sent → ${normalised}`);
@@ -92,7 +127,6 @@ router.post('/verify-otp', async (req, res) => {
         // Find or create user
         let user = await User.findOne({ email: normalised });
         const isNewUser = !user;
-
         if (isNewUser) {
             user = await User.create({ email: normalised });
             console.log(`[verify-otp] New user created: ${normalised}`);

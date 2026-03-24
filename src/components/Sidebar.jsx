@@ -25,7 +25,7 @@ const SECTIONS = {
     social: 'Social',
 };
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
     const { user } = useApp();
     const location = useLocation();
     const xpPercent = (user.xp / user.xpToNext) * 100;
@@ -86,6 +86,7 @@ export default function Sidebar() {
                                 to={item.path}
                                 end={item.path === '/'}
                                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                                onClick={onClose}
                             >
                                 <item.icon size={18} />
                                 <span>{item.label}</span>

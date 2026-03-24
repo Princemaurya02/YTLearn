@@ -1,0 +1,193 @@
+/* ═══════════════════════════════════════════════════════════════
+   VIDEO CARD — animated, GPU-accelerated
+   ═══════════════════════════════════════════════════════════════ */
+
+.vc-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    will-change: transform, opacity;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.vc-card:hover {
+    border-color: var(--border-active);
+    box-shadow: 0 12px 40px rgba(124, 110, 255, 0.18);
+}
+
+.vc-card.vc-watched {
+    border-color: rgba(0, 255, 136, 0.15);
+}
+
+/* ── Thumbnail ── */
+.vc-thumb-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+}
+
+.vc-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+    will-change: transform;
+}
+
+.vc-card:hover .vc-thumb {
+    transform: scale(1.05);
+}
+
+/* ── Hover overlay ── */
+.vc-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: opacity;
+}
+
+.vc-play-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(124, 110, 255, 0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 28px rgba(124, 110, 255, 0.6);
+    will-change: transform, opacity;
+}
+
+.vc-play-btn:hover {
+    background: var(--violet);
+}
+
+/* ── Duration badge ── */
+.vc-duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+}
+
+/* ── Watched badge ── */
+.vc-watched-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+}
+
+/* ── Shimmer overlay (fades once image loads) ── */
+.vc-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.04) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    pointer-events: none;
+    opacity: 0; /* hidden after load; shown via js if needed */
+}
+
+/* ── Info section ── */
+.vc-info {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.vc-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.vc-playlist {
+    font-size: 11px;
+    color: var(--violet-light);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* ── Bookmark button ── */
+.vc-bookmark {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(14, 14, 26, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    backdrop-filter: blur(6px);
+    will-change: transform;
+}
+
+.vc-card:hover .vc-bookmark {
+    opacity: 1;
+}
+
+.vc-bookmark.bookmarked,
+.vc-bookmark:hover {
+    color: var(--amber);
+    opacity: 1;
+    border-color: rgba(255, 179, 71, 0.3);
+}
+
+/* ── Mobile: always show bookmark ── */
+@media (max-width: 768px) {
+    .vc-bookmark {
+        opacity: 1;
+    }
+}

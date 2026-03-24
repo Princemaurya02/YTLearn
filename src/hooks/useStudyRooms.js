@@ -1,228 +1,137 @@
 /**
- * useStudyRooms — Real-time Study Room engine
+ * useStudyRooms — Real-time Study Rooms via server API
  *
- * How "real-time" works without a backend:
- *   • Rooms are stored in localStorage ('ytlearn_rooms')
- *   • BroadcastChannel ('ytlearn_rooms') broadcasts events to ALL open tabs
- *   • Each tab listens and updates its local React state immediately
- *   • Result: create/join/leave/close rooms is instant across every tab
- *
- * Shape of a room object:
- * {
- *   id: string,           // "room_<timestamp>"
- *   name: string,
- *   subject: string,
- *   maxMembers: number,
- *   members: Member[],    // [{ id, name, isHost, joinedAt }]
- *   status: 'waiting'|'live',
- *   host: string,         // host display name
- *   hostId: string,       // host member id
- *   createdAt: number,    // Date.now()
- *   videoId: string|null, // currently playing video
- *   inviteCode: string,   // 6-char code
- *   messages: Msg[],      // [{ id, author, text, ts }]
- * }
+ * Rooms are persisted on the Express server (in-memory).
+ * Polling every 3 seconds keeps all clients in sync across
+ * different devices and browsers — fixing the cross-device join bug.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const LS_KEY = 'ytlearn_rooms';
-const CHAN_NAME = 'ytlearn_rooms';
+const BASE_URL  = import.meta.env.VITE_API_URL || '';
+const ROOMS_API = `${BASE_URL}/api/rooms`;
+const POLL_MS   = 3000;
 
-// ── Persistence helpers ───────────────────────────────────────────────────────
-function loadRooms() {
-    try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return [];
-        return JSON.parse(raw);
-    } catch { return []; }
-}
-
-function saveRooms(rooms) {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(rooms)); } catch { /* quota */ }
-}
-
-// Generate a random 6-char invite code
-function makeCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-// Generate a unique member id for this browser session
+// ── Stable per-browser user ID ────────────────────────────────────────────────
 let _myId = sessionStorage.getItem('ytlearn_uid');
 if (!_myId) {
     _myId = 'u_' + Math.random().toString(36).substring(2, 10);
     sessionStorage.setItem('ytlearn_uid', _myId);
 }
-
 export const MY_ID = _myId;
 
-// ── Main hook ────────────────────────────────────────────────────────────────
+// ── Helper: POST wrapper ──────────────────────────────────────────────────────
+async function post(path, body) {
+    const res  = await fetch(`${ROOMS_API}${path}`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({ success: false }));
+    return data;
+}
+
+// ── Main hook ─────────────────────────────────────────────────────────────────
 export function useStudyRooms(userName = 'You') {
-    const [rooms, setRooms] = useState(loadRooms);
+    const [rooms,    setRooms]    = useState([]);
     const [joinedId, setJoinedId] = useState(null);
-    const channelRef = useRef(null);
+    const [loading,  setLoading]  = useState(true);
+    const pollRef   = useRef(null);
+    const mountedRef = useRef(true);
 
-    // Broadcast an event to all tabs
-    function broadcast(type, payload) {
-        try { channelRef.current?.postMessage({ type, payload }); } catch { /* ignore */ }
-    }
+    // ── Poll server for current room list ────────────────────────────────────
+    const fetchRooms = useCallback(async () => {
+        try {
+            const res  = await fetch(ROOMS_API);
+            const data = await res.json();
+            if (data.success && mountedRef.current) {
+                setRooms(data.rooms || []);
+                setLoading(false);
+            }
+        } catch { /* silently ignore network blips */ }
+    }, []);
 
-    // Re-read rooms from localStorage and update state
-    function syncFromStorage() {
-        setRooms(loadRooms());
-    }
-
-    // ── BroadcastChannel listener ────────────────────────────────────────────
     useEffect(() => {
-        // BroadcastChannel is supported in all modern browsers
-        const chan = new BroadcastChannel(CHAN_NAME);
-        channelRef.current = chan;
-
-        chan.onmessage = () => {
-            // Any event → re-read localStorage (the sender already wrote the new state)
-            syncFromStorage();
-        };
-
-        // Also listen to localStorage changes from other tabs (fallback)
-        const onStorage = (e) => {
-            if (e.key === LS_KEY) syncFromStorage();
-        };
-        window.addEventListener('storage', onStorage);
-
-        // Cleanup on unmount
+        mountedRef.current = true;
+        fetchRooms();
+        pollRef.current = setInterval(fetchRooms, POLL_MS);
         return () => {
-            chan.close();
-            window.removeEventListener('storage', onStorage);
+            mountedRef.current = false;
+            clearInterval(pollRef.current);
         };
+    }, [fetchRooms]);
+
+    // ── Refresh and return single room ───────────────────────────────────────
+    const refreshRoom = useCallback(async (roomId) => {
+        try {
+            const res  = await fetch(`${ROOMS_API}/${roomId}`);
+            const data = await res.json();
+            if (data.success && mountedRef.current) {
+                setRooms(prev => prev.map(r => r.id === roomId ? data.room : r));
+                return data.room;
+            }
+        } catch {}
+        return null;
     }, []);
 
-    // ── Mutators ────────────────────────────────────────────────────────────
+    // ── Create room ──────────────────────────────────────────────────────────
+    const createRoom = useCallback(async ({ name, subject, maxMembers = 8 }) => {
+        const data = await post('/create', { name, subject, maxMembers, userId: MY_ID, userName });
+        if (!data.success) { alert(data.message || 'Failed to create room.'); return null; }
+        await fetchRooms();
+        setJoinedId(data.room.id);
+        return data.room.id;
+    }, [userName, fetchRooms]);
 
-    /** Create a new room and join it as host */
-    const createRoom = useCallback(({ name, subject, maxMembers = 8, videoId = null }) => {
-        const roomId = 'room_' + Date.now();
-        const hostMember = { id: MY_ID, name: userName, isHost: true, joinedAt: Date.now() };
-        const newRoom = {
-            id: roomId,
-            name: name.trim(),
-            subject,
-            maxMembers,
-            members: [hostMember],
-            status: 'waiting',
-            host: userName,
-            hostId: MY_ID,
-            createdAt: Date.now(),
-            videoId,
-            inviteCode: makeCode(),
-            messages: [
-                { id: 'm0', author: 'System', text: `Room "${name}" created. Share the invite code to invite friends!`, ts: Date.now() },
-            ],
-        };
-
-        const updated = [newRoom, ...loadRooms()];
-        saveRooms(updated);
-        setRooms(updated);
-        broadcast('room_created', { roomId });
-        setJoinedId(roomId);
-        return roomId;
-    }, [userName]);
-
-    /** Join an existing room */
-    const joinRoom = useCallback((roomId) => {
-        const current = loadRooms();
-        const idx = current.findIndex(r => r.id === roomId);
-        if (idx === -1) return false;
-
-        const room = current[idx];
-        if (room.members.length >= room.maxMembers) return false;
-        if (room.members.some(m => m.id === MY_ID)) {
-            // Already in room — just set joined
-            setJoinedId(roomId);
-            return true;
-        }
-
-        const updated = [...current];
-        updated[idx] = {
-            ...room,
-            members: [...room.members, { id: MY_ID, name: userName, isHost: false, joinedAt: Date.now() }],
-            status: room.members.length >= 1 ? 'live' : 'waiting',
-            messages: [...room.messages, { id: 'm_' + Date.now(), author: 'System', text: `${userName} joined the room.`, ts: Date.now() }],
-        };
-        saveRooms(updated);
-        setRooms(updated);
-        broadcast('room_joined', { roomId });
-        setJoinedId(roomId);
+    // ── Join room ────────────────────────────────────────────────────────────
+    const joinRoom = useCallback(async (roomId) => {
+        const data = await post('/join', { roomId, userId: MY_ID, userName });
+        if (!data.success) { alert(data.message || 'Could not join room.'); return false; }
+        await fetchRooms();
+        setJoinedId(data.room.id);
         return true;
-    }, [userName]);
+    }, [userName, fetchRooms]);
 
-    /** Leave the current room */
-    const leaveRoom = useCallback((roomId) => {
-        const current = loadRooms();
-        const idx = current.findIndex(r => r.id === roomId);
-        if (idx === -1) { setJoinedId(null); return; }
+    // ── Join by invite code ──────────────────────────────────────────────────
+    const joinByCode = useCallback(async (code) => {
+        const data = await post('/join-code', { code, userId: MY_ID, userName });
+        if (!data.success) return null;
+        await fetchRooms();
+        setJoinedId(data.room.id);
+        return data.room.id;
+    }, [userName, fetchRooms]);
 
-        const room = current[idx];
-        const newMembers = room.members.filter(m => m.id !== MY_ID);
-
-        let updated;
-        if (newMembers.length === 0 || room.hostId === MY_ID) {
-            // Host left → close room
-            updated = current.filter(r => r.id !== roomId);
-        } else {
-            updated = [...current];
-            updated[idx] = {
-                ...room,
-                members: newMembers,
-                messages: [...room.messages, { id: 'm_' + Date.now(), author: 'System', text: `${userName} left the room.`, ts: Date.now() }],
-            };
-        }
-        saveRooms(updated);
-        setRooms(updated);
-        broadcast('room_left', { roomId });
+    // ── Leave room ───────────────────────────────────────────────────────────
+    const leaveRoom = useCallback(async (roomId) => {
+        await post('/leave', { roomId, userId: MY_ID, userName });
         setJoinedId(null);
-    }, [userName]);
+        await fetchRooms();
+    }, [userName, fetchRooms]);
 
-    /** Host closes the room entirely */
-    const closeRoom = useCallback((roomId) => {
-        const updated = loadRooms().filter(r => r.id !== roomId);
-        saveRooms(updated);
-        setRooms(updated);
-        broadcast('room_closed', { roomId });
+    // ── Close room (host only) ───────────────────────────────────────────────
+    const closeRoom = useCallback(async (roomId) => {
+        await post('/close', { roomId, userId: MY_ID });
         setJoinedId(null);
-    }, []);
+        await fetchRooms();
+    }, [fetchRooms]);
 
-    /** Send a chat message in a room */
-    const sendMessage = useCallback((roomId, text) => {
+    // ── Send message ─────────────────────────────────────────────────────────
+    const sendMessage = useCallback(async (roomId, text) => {
         if (!text.trim()) return;
-        const current = loadRooms();
-        const idx = current.findIndex(r => r.id === roomId);
-        if (idx === -1) return;
+        await post('/message', { roomId, userId: MY_ID, userName, text });
+        await refreshRoom(roomId);
+    }, [userName, refreshRoom]);
 
-        const msg = { id: 'm_' + Date.now(), author: userName, text: text.trim(), ts: Date.now() };
-        const updated = [...current];
-        updated[idx] = { ...current[idx], messages: [...current[idx].messages, msg] };
-        saveRooms(updated);
-        setRooms(updated);
-        broadcast('message_sent', { roomId });
-    }, [userName]);
-
-    /** Join by invite code */
-    const joinByCode = useCallback((code) => {
-        const room = loadRooms().find(r => r.inviteCode === code.toUpperCase().trim());
-        if (!room) return null;
-        joinRoom(room.id);
-        return room.id;
-    }, [joinRoom]);
-
-    // Derive the room the user is currently in
+    // Derive current active room (always from freshest rooms array)
     const activeRoom = joinedId ? rooms.find(r => r.id === joinedId) ?? null : null;
-    const amHost = activeRoom?.hostId === MY_ID;
+    const amHost     = activeRoom?.hostId === MY_ID;
 
     return {
         rooms,
         activeRoom,
         joinedId,
         amHost,
+        loading,
         MY_ID,
         createRoom,
         joinRoom,

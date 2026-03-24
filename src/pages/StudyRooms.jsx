@@ -156,14 +156,23 @@ function InviteModal({ inviteCode, roomName, onClose }) {
 function JoinCodeModal({ onJoin, onClose }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
+    const [joining, setJoining] = useState(false);
 
-    function handle(e) {
+    async function handle(e) {
         e.preventDefault();
-        const result = onJoin(code);
-        if (result === null) {
-            setError('No room found with that code. Check the code and try again.');
-        } else {
-            onClose();
+        setJoining(true);
+        setError('');
+        try {
+            const result = await onJoin(code);
+            if (result === null || result === undefined) {
+                setError('No room found with that code. Check and try again.');
+            } else {
+                onClose();
+            }
+        } catch {
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setJoining(false);
         }
     }
 
@@ -188,8 +197,8 @@ function JoinCodeModal({ onJoin, onClose }) {
                         />
                     </label>
                     {error && <div className="sr-error">{error}</div>}
-                    <button className="btn btn-primary" type="submit" disabled={code.length !== 6}>
-                        <UserPlus size={14} /> Join Room
+                    <button className="btn btn-primary" type="submit" disabled={code.length !== 6 || joining}>
+                        {joining ? <><Loader size={13} className="spin" /> Joining…</> : <><UserPlus size={14} /> Join Room</>}
                     </button>
                 </form>
             </div>
@@ -619,8 +628,11 @@ export default function StudyRooms() {
         const params = new URLSearchParams(window.location.search);
         const code = params.get('room');
         if (code) {
-            joinByCode(code);
+            joinByCode(code).catch(() => {});
+            // Clean URL without reload
+            window.history.replaceState({}, '', window.location.pathname);
         }
+    // eslint-disable-next-line
     }, []);
 
     // Active room view

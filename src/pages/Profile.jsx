@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { readSessions, getStreakData } from '../hooks/useAnalytics';
+import { useRealLeaderboard } from '../hooks/useRealLeaderboard';
 import './Profile.css';
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────
@@ -32,22 +33,8 @@ function rt(iso) {
     if (d < 86400) return `${Math.floor(d/3600)}h ago`; return `${Math.floor(d/86400)}d ago`;
 }
 
-// ─── Demo leaderboard users ──────────────────────────────────────────────────
-const BASE_LEADERS = [
-    { id: 'rahul',  name: 'Rahul Sharma',  hours: 124, xp: 8420 },
-    { id: 'priya',  name: 'Priya Verma',   hours: 108, xp: 7200 },
-    { id: 'arjun',  name: 'Arjun Singh',   hours: 96,  xp: 6100 },
-    { id: 'ananya', name: 'Ananya Patel',  hours: 44,  xp: 980  },
-    { id: 'vikram', name: 'Vikram Nair',   hours: 31,  xp: 720  },
-];
 const BADGES = ['👑','🥈','🥉','⭐','🎖️','🎗️'];
 
-const DEMO_USERS = [
-    { id: 'rahul',  name: 'Rahul Sharma', avatar: 'R', color: '#7c6eff', bio: 'Full-stack dev in progress 🚀' },
-    { id: 'priya',  name: 'Priya Verma',  avatar: 'P', color: '#00d4ff', bio: '#100DaysOfCode • DSA grinder 💪' },
-    { id: 'arjun',  name: 'Arjun Singh',  avatar: 'A', color: '#00ff88', bio: 'Python & ML enthusiast 🐍' },
-    { id: 'ananya', name: 'Ananya Patel', avatar: 'A', color: '#ff6b9d', bio: 'UI/UX designer learning to code ✨' },
-];
 
 function computeRealStreak() {
     const streakData = getStreakData();
@@ -392,41 +379,63 @@ function MyCommentsModal({ onClose }) {
     );
 }
 
-// ─── Certificate Modal ────────────────────────────────────────────────────────
-const COURSES = [
-    { id: 'webdev',  title: 'Web Development Fundamentals', watched: 8,  total: 12, hours: 40, focus: 87 },
-    { id: 'dsa',     title: 'Data Structures & Algorithms',  watched: 5,  total: 10, hours: 22, focus: 82 },
-    { id: 'react',   title: 'React & Modern Frontend',       watched: 12, total: 12, hours: 36, focus: 91 },
+// ─── Certificate courses — derived from real playlist progress ────────────────
+// Each entry maps a playlist ID to a display title and focus target (hours)
+const CERT_COURSES = [
+    { playlistId: 'web-dev-basics', title: 'Web Development Fundamentals' },
+    { playlistId: 'dsa-masterclass', title: 'Data Structures & Algorithms'  },
+    { playlistId: 'react-complete',  title: 'React & Modern Frontend'        },
+    { playlistId: 'python-beginners',title: 'Python for Everybody'           },
 ];
 
 function CertificatesSection({ userName }) {
+    const { playlists } = useApp();
     const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
     return (
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            {COURSES.map(c => {
-                const pct       = Math.round((c.watched / c.total) * 100);
-                const completed = c.watched >= c.total;
-                const certId    = `YTL-${new Date().getFullYear()}-${String(Math.abs(c.id.split('').reduce((a,ch)=>a+ch.charCodeAt(0),0))).slice(0,5)}`;
+            {CERT_COURSES.map(({ playlistId, title }) => {
+                const pl = playlists.find(p => p.id === playlistId);
+                if (!pl) return null;
+
+                const watched   = pl.completedVideos ?? 0;
+                const total     = pl.totalVideos     ?? 1;
+                const pct       = Math.round((watched / total) * 100);
+                const completed = watched >= total;
+                const certId    = `YTL-${new Date().getFullYear()}-${String(
+                    Math.abs(playlistId.split('').reduce((a,ch) => a + ch.charCodeAt(0), 0))
+                ).slice(0,5)}`;
+
                 return (
-                    <div key={c.id} className={`cert-item-new ${completed ? 'cert-unlocked' : ''}`}>
+                    <div key={playlistId} className={`cert-item-new ${completed ? 'cert-unlocked' : ''}`}>
                         <div className="cert-icon-new">{completed ? '🎓' : '📚'}</div>
                         <div className="cert-info">
-                            <div className="cert-title">{c.title}</div>
-                            <div className="cert-sub">{c.watched}/{c.total} videos • {c.hours}h • Focus: {c.focus}%</div>
+                            <div className="cert-title">{title}</div>
+                            <div className="cert-sub">
+                                {watched}/{total} videos • {pl.totalHours}h
+                            </div>
                             <div className="cert-progress-bar">
-                                <div className="cert-progress-fill" style={{width:`${pct}%`, background: completed ? 'var(--grad-green)' : 'var(--grad-violet)'}} />
+                                <div
+                                    className="cert-progress-fill"
+                                    style={{
+                                        width: `${pct}%`,
+                                        background: completed ? 'var(--grad-green)' : 'var(--grad-violet)',
+                                    }}
+                                />
                             </div>
                         </div>
                         {completed ? (
                             <button
                                 className="btn btn-amber btn-sm cert-dl-btn"
                                 title="Download Certificate"
-                                onClick={() => downloadCertificate(userName, c.title, today, certId)}
+                                onClick={() => downloadCertificate(userName, title, today, certId)}
                             >
                                 <Download size={13}/> Certificate
                             </button>
                         ) : (
-                            <div className="cert-locked-badge">{c.total - c.watched} left</div>
+                            <div className="cert-locked-badge">
+                                {total - watched} left
+                            </div>
                         )}
                     </div>
                 );
@@ -438,6 +447,7 @@ function CertificatesSection({ userName }) {
         </div>
     );
 }
+
 
 // ─── Parent Report Section ────────────────────────────────────────────────────
 function ParentReportSection({ name, thisWeekHours, focusScore, thisWeekSessions, streak, totalHours }) {
@@ -498,28 +508,14 @@ Visit: https://ytlearn.app`
     );
 }
 
-// ─── Real-time Leaderboard ────────────────────────────────────────────────────
-function useLeaderboard(userName, userXp, totalHours) {
-    const [entries, setEntries] = useState([]);
+// ─── useLeaderboard removed — now using useRealLeaderboard hook ───────────────
 
-    const build = useCallback(() => {
-        const me = { id: 'me', name: `${userName} (You)`, hours: totalHours, xp: userXp, isMe: true };
-        const all = [...BASE_LEADERS, me].sort((a, b) => b.xp - a.xp);
-        const ranked = all.map((e, i) => ({ ...e, rank: i + 1, badge: BADGES[i] || '' }));
-        setEntries(ranked);
-        try { localStorage.setItem(LB_KEY, JSON.stringify(ranked)); } catch {}
-    }, [userName, userXp, totalHours]);
-
-    useEffect(() => { build(); const t = setInterval(build, 10000); return () => clearInterval(t); }, [build]);
-
-    return entries;
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
 export default function Profile() {
-    const { user, liveStats } = useApp();
+    const { user, liveStats, computedAchievements } = useApp();
     const subjectBreakdown = liveStats?.subjectBreakdown ?? [];
     const radarData        = liveStats?.radarData ?? [];
     const calendarMap      = liveStats?.calendarMap ?? {};
@@ -527,9 +523,10 @@ export default function Profile() {
     const focusScore       = liveStats?.focusScore ?? 0;
     const thisWeekHours    = liveStats?.thisWeekHours ?? 0;
     const thisWeekSessions = liveStats?.thisWeekSessions ?? 0;
+    const unlockedBadges   = (computedAchievements ?? []).filter(a => a.unlocked).length;
 
     const realStreak    = useMemo(() => computeRealStreak(), []);
-    const displayStreak = realStreak || user.streak;
+    const displayStreak = realStreak || liveStats?.streak || 0;
 
     const [following,     setFollowState]   = useState(rf);
     const [profileData,   setProfileData]   = useState(gp);
@@ -555,9 +552,15 @@ export default function Profile() {
         return { total: myPosts.length, likes: myPosts.reduce((s,p)=>s+p.likesCount,0), likedPosts: liked.size, comments: myComments };
     }, []);
 
-    // Real-time leaderboard
-    const leaderboard = useLeaderboard(displayName, user.xp, totalHours);
-    const myRank      = leaderboard.find(e => e.isMe)?.rank ?? '—';
+    // Real global leaderboard — fetches from MongoDB
+    const { entries: leaderboard, loading: lbLoading, myRank } = useRealLeaderboard({
+        email:      user.email,
+        name:       displayName,
+        xp:         user.xp,
+        totalHours,
+        avatarColor,
+        streak:     displayStreak,
+    });
 
     const toggleFollow = useCallback(uid => {
         setFollowState(prev => { const next=new Set(prev); next.has(uid)?next.delete(uid):next.add(uid); sf(next); return next; });
@@ -615,10 +618,10 @@ export default function Profile() {
 
                     <div className="profile-core-stats">
                         {[
-                            {icon:Flame,  label:'Streak',      value:`${displayStreak}d`, color:'var(--amber)'},
-                            {icon:Clock,  label:'Total Study',  value:`${totalHours}h`,   color:'var(--cyan)'},
-                            {icon:Target, label:'Focus Score',  value:focusScore>0?`${focusScore}%`:'—', color:'var(--green)'},
-                            {icon:Award,  label:'Badges',       value:user.badges.length, color:'var(--violet)'},
+                            {icon:Flame,  label:'Streak',      value:`${displayStreak}d`,              color:'var(--amber)'},
+                            {icon:Clock,  label:'Total Study',  value:`${totalHours}h`,                 color:'var(--cyan)'},
+                            {icon:Target, label:'Focus Score',  value:focusScore>0?`${focusScore}%`:'—',color:'var(--green)'},
+                            {icon:Award,  label:'Badges',       value:unlockedBadges,                   color:'var(--violet)'},
                         ].map((s,i)=>(
                             <div key={i} className="profile-core-stat">
                                 <s.icon size={18} style={{color:s.color}}/>
@@ -683,24 +686,45 @@ export default function Profile() {
                     <p className="engagement-tip">Click any stat for details. Share your learning in the <strong>Post</strong> feed!</p>
                 </div>
 
-                {/* ── Real-time Leaderboard ──────────────────────────────── */}
+                {/* ── Real Global Leaderboard ─────────────────────────── */}
                 <div className="profile-card">
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                         <h3><Trophy size={16}/> Global Leaderboard</h3>
-                        <span className="lb-live-dot" title="Updates every 10s">● Live</span>
+                        <span className="lb-live-dot" title="Updates every 30s">● Live</span>
                     </div>
-                    <div className="leaderboard">
-                        {leaderboard.map(e => (
-                            <div key={e.id} className={`leader-row ${e.isMe?'me':''}`}>
-                                <div className="leader-rank">{e.badge || `#${e.rank}`}</div>
-                                <div className="leader-name">{e.name}</div>
-                                <div className="leader-stats">
-                                    <span>{e.hours}h</span>
-                                    <span className="badge badge-violet">{e.xp.toLocaleString()} XP</span>
+
+                    {lbLoading ? (
+                        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                            {[1,2,3,4].map(i => (
+                                <div key={i} className="skeleton" style={{height:52,borderRadius:12}} />
+                            ))}
+                        </div>
+                    ) : leaderboard.length === 0 ? (
+                        <p style={{fontSize:13,color:'var(--text-muted)',padding:'20px 0',textAlign:'center'}}>
+                            No users yet — be the first to earn XP! 🚀
+                        </p>
+                    ) : (
+                        <div className="leaderboard">
+                            {leaderboard.map(e => (
+                                <div key={e.id} className={`leader-row ${e.isMe ? 'me' : ''}`}>
+                                    <div className="leader-rank">{e.badge || `#${e.rank}`}</div>
+                                    <div className="leader-avatar" style={{background: e.avatarColor || '#7c6eff'}}>
+                                        {(e.name?.[0] || '?').toUpperCase()}
+                                    </div>
+                                    <div className="leader-info">
+                                        <span className="leader-name">
+                                            {e.name}{e.isMe && <span className="leader-you"> (You)</span>}
+                                        </span>
+                                        <span className="leader-level">Lv.{e.level} · {e.levelName}</span>
+                                    </div>
+                                    <div className="leader-stats">
+                                        <span className="leader-hours">{e.totalHours}h</span>
+                                        <span className="badge badge-violet">{e.xp.toLocaleString()} XP</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Subject Mastery ────────────────────────────────────── */}

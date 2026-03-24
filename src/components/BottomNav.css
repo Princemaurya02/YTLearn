@@ -1,0 +1,78 @@
+/* ═══════════════════════════════════════════════════════════════
+   BOTTOM NAV — mobile-only, hidden on desktop
+   ═══════════════════════════════════════════════════════════════ */
+
+.bottom-nav {
+    display: none; /* hidden on desktop */
+}
+
+@media (max-width: 768px) {
+    .bottom-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: rgba(14, 14, 26, 0.92);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        z-index: 200;
+        padding: 0 8px env(safe-area-inset-bottom);
+        /* GPU hint */
+        will-change: transform;
+    }
+
+    /* Floating pill indicator */
+    .bn-pill {
+        position: absolute;
+        bottom: 36px;
+        left: 0;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--grad-violet);
+        box-shadow: 0 0 12px rgba(124, 110, 255, 0.7);
+        will-change: transform, width;
+        pointer-events: none;
+    }
+
+    /* Each nav item */
+    .bn-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        flex: 1;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 6px 4px 10px;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s ease;
+        min-height: 48px; /* accessibility touch target */
+    }
+
+    .bn-item.active {
+        color: var(--violet-light);
+    }
+
+    .bn-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        will-change: transform;
+    }
+
+    .bn-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        line-height: 1;
+        color: var(--violet-light);
+        will-change: opacity, transform;
+    }
+}

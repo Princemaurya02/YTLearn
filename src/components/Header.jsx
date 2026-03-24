@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, Command, X, Play, Check, Trash2 } from 'lucide-react';
+import { Search, Bell, Command, X, Play, Check, Trash2, Menu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNotifications } from '../hooks/useNotifications';
 import './Header.css';
@@ -29,7 +29,7 @@ function relTime(iso) {
     return `${Math.floor(d / 86400)}d ago`;
 }
 
-export default function Header() {
+export default function Header({ onMenuClick }) {
     const { liveStats } = useApp();
     const { notifs, unreadCount, markRead, markAllRead, clearAll, TYPE_ICON } = useNotifications();
     const focusScore = liveStats?.focusScore ?? 0;
@@ -68,6 +68,15 @@ export default function Header() {
 
     return (
         <header className="page-header">
+            {/* Mobile hamburger — hidden on desktop via CSS */}
+            <button
+                className="header-menu-btn"
+                onClick={onMenuClick}
+                aria-label="Open menu"
+            >
+                <Menu size={20} />
+            </button>
+
             <h1 className="header-title">{pageTitle}</h1>
 
             {/* Search */}

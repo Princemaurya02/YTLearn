@@ -534,3 +534,230 @@ input::placeholder {
   left: 100px;
   animation: orb 15s linear infinite reverse;
 }
+
+/* ============================================
+   MICRO-INTERACTIONS — tap / hover feedback
+   ============================================ */
+
+/* All buttons get subtle scale feedback on active/tap */
+.btn:active,
+button:not(.no-tap):active {
+  transform: scale(0.95);
+}
+
+/* Cards get a slight inward press on tap */
+.card:active {
+  transform: scale(0.98) translateY(0);
+}
+
+/* Touch-friendly tap highlight removal */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   MOBILE BACKDROP (sidebar overlay)
+   ============================================ */
+.mobile-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99;
+    will-change: opacity;
+  }
+}
+
+/* ============================================
+   MOBILE — RESPONSIVE LAYOUT
+   ============================================ */
+
+/* Mobile: hide sidebar by default, show as drawer */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    /* Default: off-screen */
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .sidebar-wrapper.open {
+    transform: translateX(0);
+  }
+
+  /* Main content fills full width on mobile */
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  /* Page body gets bottom padding for BottomNav */
+  .page-body {
+    padding: 16px;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 16px));
+    overflow-y: auto;
+  }
+
+  /* Header gets a hamburger menu button */
+  .header-menu-btn {
+    display: flex !important;
+  }
+
+  /* Tighten cards on mobile */
+  .card {
+    padding: 14px;
+  }
+}
+
+/* Desktop: sidebar always visible */
+@media (min-width: 769px) {
+  .sidebar-wrapper {
+    transform: none !important; /* override any motion */
+  }
+
+  .header-menu-btn {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   SCROLL REVEAL
+   ============================================ */
+
+/* Default hidden state for JS-driven reveal */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: transform, opacity;
+}
+
+[data-reveal].revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   SKELETON LOADER - shimmer
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 25%,
+    var(--bg-card-hover) 50%,
+    var(--bg-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: var(--radius-sm);
+  will-change: background-position;
+}
+
+/* ============================================
+   PERFORMANCE HINTS
+   ============================================ */
+
+/* Heavy animated elements should hint the GPU */
+.animate-float,
+.animate-spin,
+.bg-orbs,
+.sidebar {
+  will-change: transform;
+}
+
+/* ============================================
+   GLOBAL TEXT ANIMATIONS
+   ============================================ */
+
+/* Gradient-shifting shimmer text */
+.text-shimmer {
+  background: linear-gradient(90deg, #7c6eff 0%, #c4b5fd 25%, #00d4ff 50%, #c4b5fd 75%, #7c6eff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textShimmer 3s linear infinite;
+}
+@keyframes textShimmer {
+  to { background-position: 200% center; }
+}
+
+/* Typing cursor blink */
+.text-typing::after {
+  content: '|';
+  color: var(--violet);
+  animation: cursorBlink 0.9s step-end infinite;
+  margin-left: 2px;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0; }
+}
+
+/* Pulse badge — used on live indicators */
+.pulse-badge {
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+@keyframes pulseBadge {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,110,255,0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(124,110,255,0); }
+}
+
+/* Float up on hover — for hero section headings */
+.hover-float {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), color 0.2s ease;
+  display: inline-block;
+}
+.hover-float:hover { transform: translateY(-3px); }
+
+/* Staggered reveal animation helpers */
+.reveal-item {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: revealUp 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes revealUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Apply stagger delay via nth-child — up to 8 items */
+.reveal-item:nth-child(1) { animation-delay: 0.05s; }
+.reveal-item:nth-child(2) { animation-delay: 0.12s; }
+.reveal-item:nth-child(3) { animation-delay: 0.19s; }
+.reveal-item:nth-child(4) { animation-delay: 0.26s; }
+.reveal-item:nth-child(5) { animation-delay: 0.33s; }
+.reveal-item:nth-child(6) { animation-delay: 0.40s; }
+.reveal-item:nth-child(7) { animation-delay: 0.47s; }
+.reveal-item:nth-child(8) { animation-delay: 0.54s; }
+
+/* Numeric counter pop — use with JS that sets innerText */
+.counter-pop {
+  display: inline-block;
+  animation: counterPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes counterPop {
+  from { transform: scale(1.4); opacity: 0.6; }
+  to   { transform: scale(1);   opacity: 1; }
+}

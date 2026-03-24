@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE MENU — animated dropdown from top
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Only visible on mobile */
+.mm-backdrop,
+.mm-panel {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* Backdrop — blurred dim overlay */
+    .mm-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 8, 16, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 148;
+        will-change: opacity;
+    }
+
+    /* Panel — floats below header, full width */
+    .mm-panel {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-active);
+        border-bottom-left-radius: var(--radius-xl);
+        border-bottom-right-radius: var(--radius-xl);
+        z-index: 149;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        max-height: calc(100vh - var(--header-height) - 24px);
+        overflow-y: auto;
+        will-change: opacity, transform;
+    }
+
+    /* ── Header row ── */
+    .mm-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .mm-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--violet-light);
+        flex-shrink: 0;
+    }
+
+    .mm-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        padding-left: 12px;
+        border-left: 1px solid var(--border);
+    }
+
+    .mm-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--grad-violet);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mm-user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .mm-user-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .mm-user-xp {
+        font-size: 10px;
+        color: var(--violet-light);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .mm-close {
+        margin-left: auto;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mm-close:hover, .mm-close:active {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text-primary);
+    }
+
+    .mm-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0;
+    }
+
+    /* ── Nav items ── */
+    .mm-nav {
+        padding: 10px 10px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .mm-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.18s ease, color 0.18s ease;
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mm-item:active {
+        background: rgba(255, 255, 255, 0.04);
+        transform: scale(0.98);
+    }
+
+    .mm-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-primary);
+    }
+
+    .mm-item.active {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 700;
+    }
+
+    /* Icon bubble */
+    .mm-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .mm-label {
+        flex: 1;
+    }
+
+    /* Active indicator dot */
+    .mm-active-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 6px currentColor;
+    }
+}
