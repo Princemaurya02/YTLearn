@@ -618,6 +618,12 @@ a, button {
     padding: 16px;
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 16px));
     overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Prevent any child card/grid from causing horizontal scroll */
+  .main-content {
+    overflow-x: hidden;
   }
 
   /* Header gets a hamburger menu button */
