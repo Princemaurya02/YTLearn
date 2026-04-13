@@ -4,18 +4,28 @@ const USER_KEY = 'ytlearn_user';
 const BASE_URL  = import.meta.env.VITE_API_URL || '';
 const API       = `${BASE_URL}/api/auth`;
 
-// ─── Fetch with 60s timeout (handles Render cold starts) ─────────────────────
-async function fetchWithTimeout(url, options, ms = 60_000) {
-    const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ms);
-    try {
-        const res = await fetch(url, { ...options, signal: ctrl.signal });
-        clearTimeout(timer);
-        return res;
-    } catch (err) {
-        clearTimeout(timer);
-        if (err.name === 'AbortError') throw new Error('Server is waking up — please wait 30 seconds and try again.');
-        throw new Error('Cannot reach the server. Check your internet connection.');
+// ─── Fetch with retry for Render cold starts ──────────────────────────────────
+async function fetchWithTimeout(url, options, ms = 90_000, retries = 2) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        const ctrl  = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), ms);
+        try {
+            const res = await fetch(url, { ...options, signal: ctrl.signal });
+            clearTimeout(timer);
+            return res;
+        } catch (err) {
+            clearTimeout(timer);
+            if (err.name !== 'AbortError') {
+                throw new Error('Cannot reach the server. Check your internet connection.');
+            }
+            // On timeout, retry if attempts remain
+            if (attempt < retries) {
+                // Wait 5s before retrying
+                await new Promise(r => setTimeout(r, 5000));
+                continue;
+            }
+            throw new Error('Server is taking too long to respond. Please wait a moment and try again.');
+        }
     }
 }
 

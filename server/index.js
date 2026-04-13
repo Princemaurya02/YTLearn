@@ -41,6 +41,29 @@ app.use('/api/rooms',       roomRoutes);
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: Date.now() }));
 
+// ── Keep-alive self-ping (prevents Render free tier cold starts) ──────────────
+// Pings our own /api/health every 10 minutes so the server stays warm.
+if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL
+        ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+        : null;
+
+    if (SELF_URL) {
+        setInterval(async () => {
+            try {
+                const { default: https } = await import('https');
+                https.get(SELF_URL, (res) => {
+                    console.log(`🏓  Keep-alive ping → ${res.statusCode}`);
+                    res.resume(); // drain the response
+                }).on('error', (e) => console.warn('⚠️  Keep-alive ping failed:', e.message));
+            } catch (e) {
+                console.warn('⚠️  Keep-alive ping error:', e.message);
+            }
+        }, 10 * 60 * 1000); // every 10 minutes
+        console.log(`🏓  Keep-alive enabled → pinging ${SELF_URL} every 10 min`);
+    }
+}
+
 // ── Serve React build in production ───────────────────────────────────────────
 // When the backend and frontend are deployed together (same service),
 // serve the Vite dist folder and handle SPA routing.
